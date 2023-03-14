@@ -1,7 +1,6 @@
 # User specified
 images/
 .vscode/
-test/
 train_log/
 test_log/
 old_log/
