@@ -33,11 +33,15 @@ DATA_FOLDER/
 |-- test/
     |-- image_789.jpg
 ```
+You can find the training images [here](https://drive.google.com/drive/folders/1UX4EYaizj2APDlAPhCDEHHOKHUjRH5Rw?usp=share_link)
 
 
 Run the following command to train a model and save the logs and checkpoints to `SAVE_FOLDER`
 ```
 CUDA_VISIBLE_DEVICES=0 python improved_model.py --data-folder DATA_FOLDER --save-folder SAVE_FOLDER
+
+#Exemple:
+CUDA_VISIBLE_DEVICES=0 python ./po/improved_model.py --test-only --data-folder ./data --test-ckpt ./texture_utils/vgg19_normalised.npz --test-folder ./data/train
 ```
 
 For the details of more arguments, run the following command

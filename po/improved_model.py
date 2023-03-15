@@ -11,7 +11,7 @@ from tensorpack import (InstanceNorm, LinearWrap, Conv2D, Conv2DTranspose,
 from tensorpack.tfutils.summary import add_moving_summary, add_tensor_summary
 
 import sys
-sys.path.append('D:\\Nouveau dossier\\IMT Atlantique\\Cours\\A3\\Computational Imaging\\Projet\\Code')
+sys.path.append('./')
 
 from aparse import ArgParser
 from texture_utils import build_texture_loss, build_gram
