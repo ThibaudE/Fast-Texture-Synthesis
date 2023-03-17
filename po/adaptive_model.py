@@ -7,7 +7,7 @@ from tensorpack import (InstanceNorm, LinearWrap, Conv2D, Conv2DTranspose,
     argscope, imgaug, logger, PrintData, QueueInput, ModelSaver, Callback,
     ScheduledHyperParamSetter, PeriodicTrigger, SaverRestore, JoinData,
     AugmentImageComponent, ImageFromFile, BatchData, MultiProcessRunner,
-    MergeAllSummaries, BatchNorm)
+    MergeAllSummaries, BatchNorm, SmartInit)
 from tensorpack.tfutils.summary import add_moving_summary, add_tensor_summary
 
 import sys
@@ -424,6 +424,7 @@ if __name__ == "__main__":
     ps = AdaptiveSynTex.get_parser()
     ps.add("--data-folder", type=str, default="../images/scaly")
     ps.add("--save-folder", type=str, default="train_log/impr")
+    ps.add("--train-ckpt", type=str, default="")
     ps.add("--steps-per-epoch", type=int, default=STEPS_PER_EPOCH)
     ps.add("--max-epoch", type=int, default=MAX_EPOCH)
     ps.add("--save-epoch", type=int, help="Save parameters every n epochs")
@@ -437,6 +438,7 @@ if __name__ == "__main__":
 
     data_folder = args.get("data_folder")
     save_folder = args.get("save_folder")
+    train_ckpt = args.get("train_ckpt")
     image_size = args.get("image_size")
     max_epoch = args.get("max_epoch")
     save_epoch = args.get("save_epoch") or max_epoch // 10
@@ -484,5 +486,5 @@ if __name__ == "__main__":
         ],
         max_epoch= end_epoch,
         steps_per_epoch=steps_per_epoch,
-        session_init=None
+        session_init=SmartInit(train_ckpt) if train_ckpt.length > 0 else None
     )
