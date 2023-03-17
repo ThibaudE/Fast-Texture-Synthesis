@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from collections import OrderedDict
 
@@ -11,6 +11,9 @@ from tensorpack.tfutils.summary import add_moving_summary
 from tensorpack.tfutils.tower import TowerContext, TowerFuncWrapper
 from tensorpack.utils import logger
 from tensorpack.utils.argtools import memoized_method
+
+import sys
+sys.path.append('./')
 
 from texture_utils import Vgg19Extractor, build_gram, build_texture_loss
 from aparse import ArgParser

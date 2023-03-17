@@ -1,4 +1,4 @@
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 import glob, os
 from collections import OrderedDict
@@ -10,8 +10,11 @@ from tensorpack import (InstanceNorm, LinearWrap, Conv2D, Conv2DTranspose,
     MergeAllSummaries)
 from tensorpack.tfutils.summary import add_moving_summary
 
+import sys
+sys.path.append('./')
+
 from aparse import ArgParser
-from syntex.texture_utils import build_texture_loss
+from texture_utils import build_texture_loss
 from model import SynTexModelDesc, SynTexTrainer, RandomZData
 
 IMAGESIZE = 224
