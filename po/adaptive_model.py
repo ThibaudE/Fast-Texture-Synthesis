@@ -486,5 +486,5 @@ if __name__ == "__main__":
         ],
         max_epoch= end_epoch,
         steps_per_epoch=steps_per_epoch,
-        session_init=SmartInit(train_ckpt) if train_ckpt.length > 0 else None
+        session_init=SmartInit(train_ckpt) if len(train_ckpt) > 0 else None
     )
