@@ -272,7 +272,7 @@ def test():
             image_target = resize_crop(image_target, image_size)
             #
             start_time = time.time()
-            print(image_path)
+            print('Start with image:', image_path)
             image_syn, func = test_single(syn, image_target, is_preimage)
             print("Finished (%.2f sec)" % (time.time() - start_time))
             save_path = os.path.join(save_folder, image_path.split('/')[-1])

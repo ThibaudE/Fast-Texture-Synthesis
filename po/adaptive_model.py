@@ -7,7 +7,7 @@ from tensorpack import (InstanceNorm, LinearWrap, Conv2D, Conv2DTranspose,
     argscope, imgaug, logger, PrintData, QueueInput, ModelSaver, Callback,
     ScheduledHyperParamSetter, PeriodicTrigger, SaverRestore, JoinData,
     AugmentImageComponent, ImageFromFile, BatchData, MultiProcessRunner,
-    MergeAllSummaries, BatchNorm, SmartInit)
+    MergeAllSummaries, BatchNorm, SmartInit, PredictConfig, OfflinePredictor)
 from tensorpack.tfutils.summary import add_moving_summary, add_tensor_summary
 
 import sys
@@ -419,6 +419,39 @@ class VisualizeTestSet(Callback):
             self.trainer.monitors.put_image('test-{}'.format(idx), viz)
             idx += 1
 
+def test_only(args):
+    from imageio import imsave
+    data_folder = args.get("data_folder")
+    test_ckpt = args.get("test_ckpt")
+    test_folder = args.get("test_folder")
+    if not os.path.exists(test_folder):
+        os.makedirs(test_folder)
+    image_size = 224
+    pred_config = PredictConfig(
+        model=AdaptiveSynTex(args),
+        session_init=SmartInit(test_ckpt),
+        input_names=["pre_image_input", "image_target"],
+        output_names=['stages-target/viz', 'loss_output']
+    )
+    predictor = OfflinePredictor(pred_config)
+    test_ds = get_data(data_folder, image_size, isTrain=False)
+    test_ds.reset_state()
+    idx = 0
+    losses = list()
+    print("------------------ predict --------------")
+    for pii, it in test_ds:
+        output_array, loss_output = predictor(pii, it)
+        if output_array.ndim == 4:
+            for i in range(output_array.shape[0]):
+                imsave(os.path.join(test_folder, "test-{}.jpg".format(idx)), output_array[i])
+                idx += 1
+        else:
+            imsave(os.path.join(test_folder, "test-{}.jpg".format(idx)), output_array)
+            idx += 1
+        losses.append(loss_output)
+        print("loss #", idx, "=", loss_output)
+    print("Test and save", idx, "images to", test_folder, "avg loss =", np.mean(losses))
+
 
 if __name__ == "__main__":
     ps = AdaptiveSynTex.get_parser()
@@ -431,60 +464,66 @@ if __name__ == "__main__":
     ps.add("--image-steps", type=int, help="Synthesize images every n steps")
     ps.add("--scalar-steps", type=int, help="Period to add scalar summary", default=0)
     ps.add("--batch-size", type=int)
+    ps.add("--test-folder", type=str, default="test_log")
+    ps.add("--test-ckpt", type=str)
+    ps.add_flag("--test-only")
     args = ps.parse_args()
     print("Arguments")
     ps.print_args()
     print()
 
-    data_folder = args.get("data_folder")
-    save_folder = args.get("save_folder")
-    train_ckpt = args.get("train_ckpt")
-    image_size = args.get("image_size")
-    max_epoch = args.get("max_epoch")
-    save_epoch = args.get("save_epoch") or max_epoch // 10
-    # Scale lr and steps_per_epoch accordingly.
-    # Make sure the total number of gradient evaluations is consistent.
-    n_gpu = args.get("n_gpu") or 1
-    batch_size = (args.get("batch_size") or BATCH)
-    equi_batch_size = max(n_gpu, 1) * batch_size
-    lr = args.get("lr") or LR
-    lr *= equi_batch_size
-    steps_per_epoch = args.get("steps_per_epoch") or 1000
-    steps_per_epoch /= equi_batch_size
-    image_steps = args.get("image_steps") or steps_per_epoch // 10
-    scalar_steps = args.get("scalar_steps")
-    if scalar_steps > 0:
-        scalar_steps = max(scalar_steps // equi_batch_size, 1)
+    if args.get("test_only"):
+        test_only(args)
     else:
-        scalar_steps = 0 # merge scalar summary every epoch
-    # lr starts decreasing at half of max epoch
-    start_dec_epoch = max_epoch // 2
-    # stops when lr is 0.01 of its initial value
-    end_epoch = max_epoch - int((max_epoch - start_dec_epoch) * 0.01)
-    # adjust noise input range according to the input act
-    zmin, zmax = (0, 1) if args.get("act") == "identity" else (-1, 1)
+        data_folder = args.get("data_folder")
+        save_folder = args.get("save_folder")
+        train_ckpt = args.get("train_ckpt")
+        image_size = args.get("image_size")
+        max_epoch = args.get("max_epoch")
+        save_epoch = args.get("save_epoch") or max_epoch // 10
+        # Scale lr and steps_per_epoch accordingly.
+        # Make sure the total number of gradient evaluations is consistent.
+        n_gpu = args.get("n_gpu") or 1
+        batch_size = (args.get("batch_size") or BATCH)
+        equi_batch_size = max(n_gpu, 1) * batch_size
+        lr = args.get("lr") or LR
+        lr *= equi_batch_size
+        steps_per_epoch = args.get("steps_per_epoch") or 1000
+        steps_per_epoch /= equi_batch_size
+        image_steps = args.get("image_steps") or steps_per_epoch // 10
+        scalar_steps = args.get("scalar_steps")
+        if scalar_steps > 0:
+            scalar_steps = max(scalar_steps // equi_batch_size, 1)
+        else:
+            scalar_steps = 0 # merge scalar summary every epoch
+        # lr starts decreasing at half of max epoch
+        start_dec_epoch = max_epoch // 2
+        # stops when lr is 0.01 of its initial value
+        end_epoch = max_epoch - int((max_epoch - start_dec_epoch) * 0.01)
+        # adjust noise input range according to the input act
+        zmin, zmax = (0, 1) if args.get("act") == "identity" else (-1, 1)
 
-    if save_folder == None:
-        logger.auto_set_dir()
-    else:
-        logger.set_logger_dir(save_folder)
+        if save_folder == None:
+            logger.auto_set_dir()
+        else:
+            logger.set_logger_dir(save_folder)
 
-    df = get_data(data_folder, image_size, zmin=zmin, zmax=zmax)
-    df = PrintData(df)
-    data = QueueInput(df)
+        df = get_data(data_folder, image_size, zmin=zmin, zmax=zmax)
+        df = PrintData(df)
+        data = QueueInput(df)
 
-    SynTexTrainer(data, AdaptiveSynTex(args), n_gpu).train_with_defaults(
-        callbacks=[
-            PeriodicTrigger(ModelSaver(), every_k_epochs=save_epoch),
-            PeriodicTrigger(ModelSaver(), every_k_epochs=end_epoch), # save model at last
-            ScheduledHyperParamSetter(
-                'learning_rate',
-                [(start_dec_epoch, lr), (max_epoch, 0)], interp="linear"),
-            #PeriodicTrigger(VisualizeTestSet(data_folder, image_size), every_k_epochs=10),
-            MergeAllSummaries(period=scalar_steps), # scalar only
-            MergeAllSummaries(period=image_steps, key="image_summaries"),
-        ],
-        max_epoch= end_epoch,
-        steps_per_epoch=steps_per_epoch,
-        session_init=SmartInit(train_ckpt) if len(train_ckpt) > 0 else None
-    )
+        SynTexTrainer(data, AdaptiveSynTex(args), n_gpu).train_with_defaults(
+            callbacks=[
+                PeriodicTrigger(ModelSaver(), every_k_epochs=save_epoch),
+                PeriodicTrigger(ModelSaver(), every_k_epochs=end_epoch), # save model at last
+                ScheduledHyperParamSetter(
+                    'learning_rate',
+                    [(start_dec_epoch, lr), (max_epoch, 0)], interp="linear"),
+                #PeriodicTrigger(VisualizeTestSet(data_folder, image_size), every_k_epochs=10),
+                MergeAllSummaries(period=scalar_steps), # scalar only
+                MergeAllSummaries(period=image_steps, key="image_summaries"),
+            ],
+            max_epoch= end_epoch,
+            steps_per_epoch=steps_per_epoch,
+            session_init=SmartInit(train_ckpt) if len(train_ckpt) > 0 else None
+        )
