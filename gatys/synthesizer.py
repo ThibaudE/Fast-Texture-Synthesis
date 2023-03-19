@@ -1,11 +1,15 @@
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from collections import OrderedDict, defaultdict
 from scipy.optimize import minimize
 import cv2
+import os
 
-from syntex.aparse import ArgParser
-from syntex.texture_utils import Vgg19Extractor, build_gram, build_texture_loss
+import sys
+sys.path.append('./')
+
+from aparse import ArgParser
+from texture_utils import Vgg19Extractor, build_gram, build_texture_loss
 
 def get_bounds(shape=None):
     bounds = list()
@@ -186,14 +190,21 @@ def test_single(syn, image_target, is_preimage):
     else:
         image_syn = output
     return image_syn, func
+
+def get_image_file_names(folder_path):
+    file_names = []
+    for file_name in os.listdir(folder_path):
+        if file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png"):
+            file_names.append(file_name)
+    
+    # Return the list of image file names
+    return file_names
     
 def test():
     from imageio import imread, imwrite
     import time
-    import sys, os
 
-    from file_utils import get_image_file_names
-    from syntex.visualization import ImageDisplay, get_plottable_data
+    from visualization import ImageDisplay, get_plottable_data
 
     ps = Synthesizer.get_parser()
     ps.add("--image-path", type=str, default="../images/flower_beds_256/FlowerBeds0008_256.jpg")
@@ -208,6 +219,7 @@ def test():
     is_preimage = args.get("preimage", False)
     image_size = args.get("image_size")
     batch_test = args.get("batch_test")
+    save_folder = args.get("save_folder")
     NUM_PARALLEL_EXEC_UNITS = 2
     config = tf.ConfigProto(log_device_placement=False,
         intra_op_parallelism_threads=2,
@@ -228,7 +240,6 @@ def test():
         if batch_test:
             image_folder = args.get("image_folder")
             image_names = get_image_file_names(image_folder)
-            save_folder = args.get("save_folder")
             batch_test_start = args.get("batch_test_start")
             batch_test_end = args.get("batch_test_end")
             if not os.path.exists(save_folder):
@@ -264,11 +275,13 @@ def test():
             print(image_path)
             image_syn, func = test_single(syn, image_target, is_preimage)
             print("Finished (%.2f sec)" % (time.time() - start_time))
+            save_path = os.path.join(save_folder, image_path.split('/')[-1])
+            imwrite(save_path, get_plottable_data(image_syn, scale=255.))
             #
-            imdp = ImageDisplay()
-            imdp.show_images([
-                (get_plottable_data(image_target, scale=255.), "Original"),
-                (get_plottable_data(image_syn, scale=255.), "%.4e" % func)])
+            # imdp = ImageDisplay()
+            # imdp.show_images([
+            #     (get_plottable_data(image_target, scale=255.), "Original"),
+            #     (get_plottable_data(image_syn, scale=255.), "%.4e" % func)])
 
 if __name__ == "__main__":
     test()

@@ -492,6 +492,7 @@ def train(args):
     save_folder = args.get("save_folder")
     image_size = args.get("image_size")
     max_epoch = args.get("max_epoch")
+    train_ckpt = args.get("train_ckpt")
     save_epoch = args.get("save_epoch") or max_epoch // 10
     # Scale lr and steps_per_epoch accordingly.
     # Make sure the total number of gradient evaluations is consistent.
@@ -537,7 +538,7 @@ def train(args):
         ],
         max_epoch= end_epoch,
         steps_per_epoch=steps_per_epoch,
-        session_init=None
+        session_init=SmartInit(train_ckpt) if len(train_ckpt) > 0 else None
     )
 
 if __name__ == "__main__":
@@ -553,6 +554,7 @@ if __name__ == "__main__":
     ps.add_flag("--test-only")
     ps.add("--test-folder", type=str, default="test_log")
     ps.add("--test-ckpt", type=str)
+    ps.add("--train-ckpt", type=str, default="")
     args = ps.parse_args()
     print("Arguments")
     ps.print_args()
