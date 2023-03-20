@@ -33,7 +33,7 @@ DATA_FOLDER/
 |-- test/
     |-- image_789.jpg
 ```
-You can find the training images [here](https://drive.google.com/drive/folders/1UX4EYaizj2APDlAPhCDEHHOKHUjRH5Rw?usp=share_link)
+You can find the training images [here](https://drive.google.com/drive/folders/1UX4EYaizj2APDlAPhCDEHHOKHUjRH5Rw?usp=share_link).
 
 
 Run the following command to train a model and save the logs and checkpoints to `SAVE_FOLDER`
@@ -51,6 +51,8 @@ python xxx_model.py --help
 
 ### Test
 
+You can find the test images [here](https://drive.google.com/drive/folders/1UkJWBltoSroIlcdhyDMtC0ZGPcklKLuX?usp=share_link).
+You can find the checkpoints [here](https://drive.google.com/drive/folders/1pBfgDQ2ebXg2wUZWiGVR-BnHa5I6RC6f?usp=share_link).
 Run the following command to test a pretrained model from the checkpoint `PRETRAINED_MODEL_CKPT` and save the synthesized images to `TEST_FOLDER`
 ```
 CUDA_VISIBLE_DEVICES=0 python improved_model.py --test-only --data-folder DATA_FOLDER --test-ckpt PRETRAINED_MODEL_CKPT --test-folder TEST_FOLDER
