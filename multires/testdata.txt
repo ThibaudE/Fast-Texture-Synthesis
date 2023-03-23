@@ -1,0 +1,11 @@
+############################################################################################
+########  /home/thomas/Downloads/CompImg/TestData/test_flower_2.jpg  #########
+############################################################################################
+verbosity turned on
+Namespace(GramLightComput=False, K=2, MS_Strat='', MS_minscale=256, WLowResConstr=1.0, beta_spectrum=100000, clip_var=1, clipping_type='ImageStyleBGR', config_layers='Custom', data_folder='data/', debug=False, eps=1e-16, gamma_autocorr=1.0, gpu_frac=0.0, img_ext='png', img_folder='/home/thomas/Downloads/CompImg/TestData/', img_output_folder='images_output/', init='Gaussian', init_noise_ratio=1.0, init_range=127.5, iprint=0, learning_rate=10.0, loss=['Gram'], max_iter=200, maxcor=20, non_linearity_type='relu', optimizer='lbfgs', output_img_name='test_flower_2.jpg_Gram', padding='SAME', pooling_type='avg', print_iter=1, recomputePrepocess=False, saveMS=False, savedIntermediateIm=False, start_from_noise=1, texture_layer_weights=[1.0, 1.0, 1.0, 1.0, 1.0], texture_ref_name='test_flower_2.jpg', used_layers=['relu1_1', 'pool1', 'pool2', 'pool3', 'pool4'], verbose=True, vgg_name='normalizedvgg.mat')
+image_path /home/thomas/Downloads/CompImg/TestData/test_flower_2.jpg.png
+Exception when we try to open the image, try with a different extension format png
+image_path2 /home/thomas/Downloads/CompImg/TestData/test_flower_2.jpg.jpg
+The image have been sucessfully loaded without extension
+Load Data  data/gram_test_flower_2.jpg_233_280_avg_SAME_n.pkl
+The Gram Matrices doesn't exist, we will generate them.
