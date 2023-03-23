@@ -37,3 +37,10 @@ You can further test these functions by executing the script texto_test.py .
 ## Pre-estimated textures
 
 For certain textures, pre-estimated models are available in the folder models/ .
+
+## Other models
+You may find other tested models in the different subfolders, mainly :
+* multires : From "Multi-resolution Texture Synthesis with CNN" paper, see readme in the folder.
+* quilting : From "Image Quilting for Texture Synthesis", see readme in the folder.
+
+Those are the two additions to the presentation, especially the first one from which we could perform Gatys image pyramid optimization.
